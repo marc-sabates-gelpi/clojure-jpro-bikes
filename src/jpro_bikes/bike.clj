@@ -12,17 +12,26 @@
 (s/def ::value any?)
 (s/def ::additionalProperties (s/keys :req-un [::key
                                                ::value]))
-(s/def ::bike-point (s/keys :req-un [::lat
-                                     ::lon
-                                     ::id
-                                     ::commonName
-                                     ::additionalProperties]))
+(s/def ::tfl-bike-point (s/keys :req-un [::lat
+                                         ::lon
+                                         ::id
+                                         ::commonName
+                                         ::additionalProperties]))
+(s/def ::num-bikes nat-int?)
+(s/def ::num-empty-docks nat-int?)
+(s/def ::num-docks nat-int?)
+(s/def ::bike-point (s/keys :req-un [::id
+                                     ::name
+                                     ::num-bikes
+                                     ::num-empty-docks
+                                     ::num-docks]))
 
 (def ^:const bike-points-url "https://push-api-radon.tfl.gov.uk/BikePoint?app_key=55f39a3412591e1541de6123f7c81ee7&app_id=a30e978f")
 (def ^:const centre {:lat  51.5696734 :lon -0.0156810})
 (def ^:const radius 0.09)
 
-(defn within?
+(defn- within?
+  "Return `true` if `bike-point`'s distance to `centrer` is less or equal than `radius`; `false` otherwise."
   [centre
    radius
    {:keys [lat lon] :or {lat 90 lon 180} :as _bike-point}]
@@ -30,11 +39,11 @@
                         (math/expt (- lon (:lon centre)) 2)))]
     (>= radius d)))
 
-(s/fdef
-    :args (s/cat :centre :jpro-bikes/map-point :radius :jpro-bikes/radius :bike-point :jpro-bikes.bike/bike-point)
-    :ret boolean?)
+(s/fdef within?
+  :args (s/cat :centre :jpro-bikes/map-point :radius :jpro-bikes/radius :bike-point :jpro-bikes.bike/tfl-bike-point)
+  :ret boolean?)
 
-(defn get-property
+(defn- get-property
   "Return the additional property `property`'s value."
   [properties property]
   (some->> properties
@@ -42,12 +51,12 @@
            first
            :value))
 
-(s/fdef
-    :args (s/cat :properties ::additionalProperties :property string?)
-    :ret any?)
+(s/fdef get-property
+  :args (s/cat :properties ::additionalProperties :property string?)
+  :ret any?)
 
 (defn get-bike-points
-  "Get the bike points within the defined circle from the `center` and `radius`."
+  "Get the bike points within the defined cirular area from the `center` and `radius`."
   [centre radius]
   (let [all-bike-points #_(-> bike-points-url
                             slurp
@@ -63,3 +72,7 @@
                  :num-bikes (get-property additionalProperties "NbBikes")
                  :num-empty-docks (get-property additionalProperties "NbEmptyDocks")
                  :num-docks (get-property additionalProperties "NbDocks")})))))
+
+(s/fdef get-bike-points
+  :args (s/cat :centre :jpro-bikes/map-point :radius :jpro-bikes/radius)
+  :ret :jpro-bikes.bike/bike-point)

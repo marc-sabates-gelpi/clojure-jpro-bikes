@@ -38,4 +38,4 @@
                  :name commonName
                  :num-bikes (get-property additionalProperties "NbBikes")
                  :num-empty-docks (get-property additionalProperties "NbEmptyDocks")
-                 :num-docs (get-property additionalProperties "NbDocks")})))))
+                 :num-docks (get-property additionalProperties "NbDocks")})))))

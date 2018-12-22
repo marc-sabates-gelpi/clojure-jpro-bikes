@@ -1,10 +1,23 @@
 (ns jpro-bikes.server
   (:require [aleph.http :as http]
-            [bidi.bidi :as bidi]
             [bidi.ring :refer [make-handler]]
+            [hiccup.core :refer [html]]
             [jpro-bikes.bike :as bike]
             [jpro-bikes.user :as user]
             [yada.yada :as yada]))
+
+(defn render-bike-point
+  [{:keys [:name :num-bikes] :as _b-point}]
+  [:tr [:td name] [:td num-bikes]])
+
+(defn bikes-stats-html
+  [_]
+  (when-let [bike-points (bike/get-bike-points bike/leyton bike/radius)]
+    (->> [:h2 "Bike points near Leyton"
+          (into [:table
+                 [:tr [:th "Name"] [:th "Available bikes"]]
+                 (map render-bike-point bike-points)])]
+         html)))
 
 (defn make-root-handler
   []
@@ -31,9 +44,8 @@
     :methods
     {:get
      {:produces
-      {:media-type "text/plain" :charset "utf8"}
-      :response (fn [_]
-                  (bike/get-bike-points bike/leyton bike/radius))}}}))
+      {:media-type "text/html" :charset "utf8"}
+      :response bikes-stats-html}}}))
 
 (def routes ["" 
              {"/" (make-root-handler)

@@ -31,11 +31,18 @@
 (def ^:const leyton {:lat  51.5696734 :lon -0.0156810})
 (def ^:const radius 0.09)
 
+(defn- coordinates?
+  "Return `true` if `bike-point` has latitude and longitude; false otherwise."
+  [{:keys [lat lon] :as _bike-point}]
+  (and lat lon))
+
+(s/fdef coordinates?
+  :args (s/cat :bike-point :jpro-bikes.bike/tfl-bike-point)
+  :ret boolean?)
+
 (defn- within?
   "Return `true` if `bike-point`'s distance to `centrer` is less or equal than `radius`; `false` otherwise."
-  [centre
-   radius
-   {:keys [lat lon] :or {lat 90 lon 180} :as _bike-point}]
+  [centre radius {:keys [lat lon] :as _bike-point}]
   (let [d (math/sqrt (+ (math/expt (- lat (:lat centre)) 2)
                         (math/expt (- lon (:lon centre)) 2)))]
     (>= radius d)))
@@ -56,26 +63,31 @@
   :args (s/cat :properties ::additionalProperties :property string?)
   :ret any?)
 
+(defn- make-bike-point
+  [{:keys [id commonName additionalProperties] :as _bike-point}]
+  {:id id
+   :name commonName
+   :num-bikes (edn/read-string (get-property additionalProperties "NbBikes"))
+   :num-empty-docks (edn/read-string (get-property additionalProperties "NbEmptyDocks"))
+   :num-docks (edn/read-string (get-property additionalProperties "NbDocks"))})
+
+(s/fdef make-bike-point
+  :args (s/cat :bike-point :jpro-bikes.bike/tfl-bike-point)
+  :ret :jpro-bikes.bike/bike-point)
+
 (defn get-bike-points
   "Get the bike points within the defined cirular area from the `center` and `radius`."
   [centre radius]
-  (let [all-bike-points #_(-> bike-points-url
+  (let [all-bike-points (-> bike-points-url
                             slurp
-                            (parse-string true))
-        (-> "resources/bike-points.edn"
-            slurp
-            clojure.edn/read-string)]
+                            (parse-string true))]
     (->> all-bike-points
+         (filter coordinates?)
          (filter (partial within? centre radius))
-         (map (fn [{:keys [id commonName additionalProperties]}]
-                {:id id
-                 :name commonName
-                 :num-bikes (edn/read-string (get-property additionalProperties "NbBikes"))
-                 :num-empty-docks (edn/read-string (get-property additionalProperties "NbEmptyDocks"))
-                 :num-docks (edn/read-string (get-property additionalProperties "NbDocks"))}))
+         (map make-bike-point)
          (take 5)
          seq)))
 
 (s/fdef get-bike-points
   :args (s/cat :centre :jpro-bikes/map-point :radius :jpro-bikes/radius)
-  :ret (s/coll-of :jpro-bikes.bike/bike-point :min-count 0))
+  :ret (s/nilable (s/coll-of :jpro-bikes.bike/bike-point :min-count 1)))

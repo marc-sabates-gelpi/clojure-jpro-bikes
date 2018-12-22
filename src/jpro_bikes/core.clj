@@ -1,6 +1,10 @@
 (ns jpro-bikes.core
-  (:require [cheshire.core :refer [parse-string]])
   (:gen-class))
+
+(defn stop
+  []
+  (when-let [s jpro-bikes.server/server]
+    (.close s)))
 
 (defn -main
   ""

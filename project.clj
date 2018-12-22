@@ -3,7 +3,8 @@
   :url "http://example.com/FIXME"
   :license {:name "GNU General Public License (GPL) version 3"
             :url "https://www.gnu.org/licenses/gpl.html"}
-  :dependencies [[bidi "2.1.4"]
+  :dependencies [[aleph "0.4.6"]
+                 [bidi "2.1.4"]
                  [cheshire "5.8.1"]
                  [org.clojure/clojure "1.10.0"]
                  [org.clojure/math.numeric-tower "0.0.4"]

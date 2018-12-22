@@ -10,4 +10,5 @@
                  [yada "1.2.16"]]
   :main ^:skip-aot jpro-bikes.core
   :target-path "target/%s"
-  :profiles {:uberjar {:aot :all}})
+  :profiles {:uberjar {:aot :all}
+             :dev {:dependencies [[org.clojure/test.check "0.10.0-alpha3"]]}})

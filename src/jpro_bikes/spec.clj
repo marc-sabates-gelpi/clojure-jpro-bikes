@@ -1,4 +1,4 @@
-(ns jpro.bikes.spec
+(ns jpro-bikes.spec
   (:require [clojure.spec.alpha :as s]))
 
 (s/def :jpro-bikes.map-point/lon (s/double-in :min -180.0 :max 180.0 :NaN? false :infinite? false))

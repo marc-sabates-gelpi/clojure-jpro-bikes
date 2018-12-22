@@ -1,8 +1,9 @@
 (ns jpro-bikes.bike
   (:require [cheshire.core :refer [parse-string]]
+            [clojure.edn :as edn]          
             [clojure.math.numeric-tower :as math]
             [clojure.spec.alpha :as s]
-            [jpro.bikes.spec]))
+            [jpro-bikes.spec]))
 
 (s/def ::lat :jpro-bikes.map-point/lat)
 (s/def ::lon :jpro-bikes.map-point/lon)
@@ -27,7 +28,7 @@
                                      ::num-docks]))
 
 (def ^:const bike-points-url "https://push-api-radon.tfl.gov.uk/BikePoint?app_key=55f39a3412591e1541de6123f7c81ee7&app_id=a30e978f")
-(def ^:const centre {:lat  51.5696734 :lon -0.0156810})
+(def ^:const leyton {:lat  51.5696734 :lon -0.0156810})
 (def ^:const radius 0.09)
 
 (defn- within?
@@ -69,10 +70,10 @@
          (map (fn [{:keys [id commonName additionalProperties]}]
                 {:id id
                  :name commonName
-                 :num-bikes (get-property additionalProperties "NbBikes")
-                 :num-empty-docks (get-property additionalProperties "NbEmptyDocks")
-                 :num-docks (get-property additionalProperties "NbDocks")})))))
+                 :num-bikes (edn/read-string (get-property additionalProperties "NbBikes"))
+                 :num-empty-docks (edn/read-string (get-property additionalProperties "NbEmptyDocks"))
+                 :num-docks (edn/read-string (get-property additionalProperties "NbDocks"))})))))
 
 (s/fdef get-bike-points
   :args (s/cat :centre :jpro-bikes/map-point :radius :jpro-bikes/radius)
-  :ret :jpro-bikes.bike/bike-point)
+  :ret (s/coll-of :jpro-bikes.bike/bike-point :min-count 0))

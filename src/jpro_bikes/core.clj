@@ -1,4 +1,5 @@
 (ns jpro-bikes.core
+  (:require [jpro-bikes.server])
   (:gen-class))
 
 (defn stop

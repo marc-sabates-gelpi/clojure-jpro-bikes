@@ -72,7 +72,8 @@
                  :name commonName
                  :num-bikes (edn/read-string (get-property additionalProperties "NbBikes"))
                  :num-empty-docks (edn/read-string (get-property additionalProperties "NbEmptyDocks"))
-                 :num-docks (edn/read-string (get-property additionalProperties "NbDocks"))})))))
+                 :num-docks (edn/read-string (get-property additionalProperties "NbDocks"))}))
+         (take 5))))
 
 (s/fdef get-bike-points
   :args (s/cat :centre :jpro-bikes/map-point :radius :jpro-bikes/radius)

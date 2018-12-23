@@ -44,7 +44,7 @@
 
 (defn make-root-handler
   []
-  (yada/handler "Jpro Bikes!"))
+  (yada/handler (slurp "README.md")))
 
 (defn make-bikes-handler
   []
@@ -68,7 +68,7 @@
 
 (def routes ["" 
              {"/" (make-root-handler)
-              "/bikes" {"/" (make-bikes-handler)
+              "/bikes" {"" (make-bikes-handler)
                         "/json" (make-bikes-handler-json)}}])
 
 (def handler (make-handler routes))

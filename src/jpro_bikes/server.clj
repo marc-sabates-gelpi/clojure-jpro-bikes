@@ -1,5 +1,6 @@
 (ns jpro-bikes.server
   (:require [aleph.http :as http]
+            [cheshire.core :refer [generate-string]]
             [bidi.ring :refer [make-handler]]
             [hiccup.core :refer [html]]
             [jpro-bikes.bike :as bike]
@@ -8,19 +9,38 @@
 
 (defonce server (atom nil))
 
+(def basic-auth {:access-control
+                 {:realms
+                  {"default"
+                   {:authentication-schemes
+                    [{:scheme "Basic"
+                      :verify
+                      (fn [[user-id given-password]]
+                        (when-let [user (get user/users user-id)]
+                          (when (= given-password (:jpro-bikes.user/password user))
+                            {:jpro-bikes.user/user (dissoc user :jpro-bikes.user/password)})))}]
+                    :authorization
+                    {:validate
+                     (fn [ctx creds]
+                       (when creds ctx))}}}}})
+
 (defn render-bike-point
   [{:keys [:name :num-bikes] :as _b-point}]
   [:tr [:td name] [:td num-bikes]])
 
-(defn bikes-stats-html
+(defn bike-stats-html
   [_]
-  (if-let [bike-points (bike/get-bike-points bike/leyton bike/radius)]
+  (if-let [bike-points (bike/get-bike-points bike/leyton)]
     (->> [:h2 "Bike points near Leyton"
           (into [:table
                  [:tr [:th "Name"] [:th "Available bikes"]]
                  (map render-bike-point bike-points)])]
          html)
     (html [:h2 "There are no bike points to display.."])))
+
+(defn bike-stats-json
+  [_]
+  (generate-string (or (bike/get-bike-points bike/leyton) '())))
 
 (defn make-root-handler
   []
@@ -29,30 +49,27 @@
 (defn make-bikes-handler
   []
   (yada/resource
-   {:access-control
-    {:realms
-     {"default"
-      {:authentication-schemes
-       [{:scheme "Basic"
-         :verify
-         (fn [[user-id given-password]]
-           (when-let [user (get user/users user-id)]
-             (when (= given-password (:jpro-bikes.user/password user))
-               {:jpro-bikes.user/user (dissoc user :jpro-bikes.user/password)})))}]
-       :authorization
-       {:validate
-        (fn [ctx creds]
-          (when creds ctx))}}}}
-    
-    :methods
-    {:get
-     {:produces
-      {:media-type "text/html" :charset "utf8"}
-      :response bikes-stats-html}}}))
+   (merge basic-auth
+          {:methods
+           {:get
+            {:produces
+             {:media-type "text/html" :charset "utf8"}
+             :response bike-stats-html}}})))
+
+(defn make-bikes-handler-json
+  []
+  (yada/resource
+   (merge basic-auth
+          {:methods
+           {:get
+            {:produces
+             {:media-type "application/json" :charset "utf8"}
+             :response bike-stats-json}}})))
 
 (def routes ["" 
              {"/" (make-root-handler)
-              "/bikes" (make-bikes-handler)}])
+              "/bikes" {"/" (make-bikes-handler)
+                        "/json" (make-bikes-handler-json)}}])
 
 (def handler (make-handler routes))
 

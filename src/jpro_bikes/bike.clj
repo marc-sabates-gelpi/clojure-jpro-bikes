@@ -27,11 +27,12 @@
                                      ::name
                                      ::num-bikes
                                      ::num-empty-docks
-                                     ::num-docks]))
+                                     ::num-docks
+                                     ::lat
+                                     ::lon]))
 
 (def ^:const bike-points-url "https://push-api-radon.tfl.gov.uk/BikePoint?app_key=55f39a3412591e1541de6123f7c81ee7&app_id=a30e978f")
-(def ^:const leyton {:lat 51.5696734 :lon -0.0156810})
-(def ^:const radius 0.012)
+(def ^:const leyton {:lat 51.560558 :lon -0.015465})
 
 (defn- coordinates?
   "Return `true` if `bike-point` has latitude and longitude; false otherwise."
@@ -42,18 +43,15 @@
   :args (s/cat :bike-point :jpro-bikes.bike/tfl-bike-point)
   :ret boolean?)
 
-(defn- within?
-  "Return `true` if `bike-point`'s coordinates are within the area defined by the `centrer`'s coordinates and a `radius`; `false` otherwise.
-  It assumes the `radius` for the latitude is two times the one for the longitude."
-  [centre radius {:keys [lat lon] :as _bike-point}]
-  (let [centre-lat (:lat centre)
-        centre-lon (:lon centre)]
-    (and (<= (- centre-lat (* 2 radius)) lat (+ centre-lat (* 2 radius)))
-         (<= (- centre-lon radius) lon (+ centre-lon radius)))))
+(defn distance-centre
+  "Retrun the distance to the `centre`."
+  [centre {:keys [lat lon] :as _point}]
+  (math/sqrt (+ (math/expt (- lat (:lat centre)) 2)
+                (math/expt (- lon (:lon centre)) 2))))
 
-(s/fdef within?
-  :args (s/cat :centre :jpro-bikes/map-point :radius :jpro-bikes/radius :bike-point :jpro-bikes.bike/tfl-bike-point)
-  :ret boolean?)
+(s/fdef distance-centre
+  :args (s/cat :centre :jpro-bikes/map-point :point :jpro-bikes.bike/tfl-bike-point)
+  :ret (s/and double? (complement neg?)))
 
 (defn- get-property
   "Return the additional property `property`'s value."
@@ -68,12 +66,14 @@
   :ret any?)
 
 (defn- make-bike-point
-  [{:keys [id commonName additionalProperties] :as _bike-point}]
+  [{:keys [id commonName additionalProperties lat lon] :as _bike-point}]
   {:id id
    :name commonName
    :num-bikes (edn/read-string (get-property additionalProperties "NbBikes"))
    :num-empty-docks (edn/read-string (get-property additionalProperties "NbEmptyDocks"))
-   :num-docks (edn/read-string (get-property additionalProperties "NbDocks"))})
+   :num-docks (edn/read-string (get-property additionalProperties "NbDocks"))
+   :lat lat
+   :lon lon})
 
 (s/fdef make-bike-point
   :args (s/cat :bike-point :jpro-bikes.bike/tfl-bike-point)
@@ -81,17 +81,17 @@
 
 (defn get-bike-points
   "Get the bike points within the defined cirular area from the `center` and `radius`."
-  [centre radius]
+  [centre]
   (let [all-bike-points (-> bike-points-url
                             slurp
                             (parse-string true))]
     (->> all-bike-points
          (filter coordinates?)
-         (filter (partial within? centre radius))
-         (map make-bike-point)
+         (sort-by (partial distance-centre centre))
          (take 5)
+         (map make-bike-point)
          seq)))
 
 (s/fdef get-bike-points
-  :args (s/cat :centre :jpro-bikes/map-point :radius :jpro-bikes/radius)
+  :args (s/cat :centre :jpro-bikes/map-point)
   :ret (s/nilable (s/coll-of :jpro-bikes.bike/bike-point :min-count 1)))

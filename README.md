@@ -24,7 +24,7 @@ http://localhost:8080/bikes/json  => JSON version of the above
 ## TODO
 
 * More testing
-* Instead of a call with to get all bike points every time, get once the bearest bike points and on successive calls get the details for those bike points only.
+* Instead of a call to get all bike points every time, get once the nearer bike points and on successive calls get the details for those bike points only.
 * Refactoring
 
 ## License

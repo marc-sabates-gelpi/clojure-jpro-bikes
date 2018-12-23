@@ -1,13 +1,8 @@
 (ns jpro-bikes.core
-  (:require [jpro-bikes.server])
+  (:require [jpro-bikes.server :as server])
   (:gen-class))
-
-(defn stop
-  []
-  (when-let [s jpro-bikes.server/server]
-    (.close s)))
 
 (defn -main
   ""
   [& args]
-  (println "Hello, World!"))
+  (server/start-server))

@@ -6,18 +6,21 @@
             [jpro-bikes.user :as user]
             [yada.yada :as yada]))
 
+(defonce server (atom nil))
+
 (defn render-bike-point
   [{:keys [:name :num-bikes] :as _b-point}]
   [:tr [:td name] [:td num-bikes]])
 
 (defn bikes-stats-html
   [_]
-  (when-let [bike-points (bike/get-bike-points bike/leyton bike/radius)]
+  (if-let [bike-points (bike/get-bike-points bike/leyton bike/radius)]
     (->> [:h2 "Bike points near Leyton"
           (into [:table
                  [:tr [:th "Name"] [:th "Available bikes"]]
                  (map render-bike-point bike-points)])]
-         html)))
+         html)
+    (html [:h2 "There are no bike points to display.."])))
 
 (defn make-root-handler
   []
@@ -53,4 +56,14 @@
 
 (def handler (make-handler routes))
 
-(def server (http/start-server handler {:port 8080}))
+(defn start-server
+  []
+  (when-not @server
+    (println "Starting server")
+    (reset! server (http/start-server handler {:port 8080}))))
+
+(defn stop-server
+  []
+  (when @server
+    (println "Stopping server")
+    (reset! server (.close @server))))

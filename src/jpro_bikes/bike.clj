@@ -3,14 +3,16 @@
             [clojure.edn :as edn]          
             [clojure.math.numeric-tower :as math]
             [clojure.spec.alpha :as s]
+            [clojure.spec.gen.alpha :as gen]
             [jpro-bikes.spec]))
 
 (s/def ::lat :jpro-bikes.map-point/lat)
 (s/def ::lon :jpro-bikes.map-point/lon)
 (s/def ::id string?)
 (s/def ::commonName string?)
-(s/def ::key string?)
-(s/def ::value any?)
+(s/def ::key #{"NbBikes" "NbDocks" "NbEmptyDocks"})
+(s/def ::value (s/with-gen string?
+                 #(s/gen #{"58" "88" "9" "93" "83" "3" "51" "50" "34" "69" "49" "22" "87" "26" "4" "8" "28" "60" "14" "82" "59" "89" "61" "57" "68" "30" "21" "96" "80" "33" "20" "67" "81" "47" "98" "19" "17" "25" "73" "78" "15" "42" "7" "66" "44" "5" "100" "48" "53" "90" "18" "36" "12" "13" "27" "62" "75" "24" "76" "35" "6" "97" "94" "99" "38" "70" "77" "39" "1" "63" "84" "0" "43" "95" "74" "37" "46" "11" "45" "56" "32" "55" "85" "2" "72" "54" "16" "41" "91" "10" "65" "40" "31" "71" "86" "64" "92" "23" "52" "79"})))
 (s/def ::additionalProperties (s/keys :req-un [::key
                                                ::value]))
 (s/def ::tfl-bike-point (s/keys :req-un [::lat
@@ -28,24 +30,26 @@
                                      ::num-docks]))
 
 (def ^:const bike-points-url "https://push-api-radon.tfl.gov.uk/BikePoint?app_key=55f39a3412591e1541de6123f7c81ee7&app_id=a30e978f")
-(def ^:const leyton {:lat  51.5696734 :lon -0.0156810})
-(def ^:const radius 0.09)
+(def ^:const leyton {:lat 51.5696734 :lon -0.0156810})
+(def ^:const radius 0.012)
 
 (defn- coordinates?
   "Return `true` if `bike-point` has latitude and longitude; false otherwise."
   [{:keys [lat lon] :as _bike-point}]
-  (and lat lon))
+  (and (not (nil? lat)) (not (nil? lon))))
 
 (s/fdef coordinates?
   :args (s/cat :bike-point :jpro-bikes.bike/tfl-bike-point)
   :ret boolean?)
 
 (defn- within?
-  "Return `true` if `bike-point`'s distance to `centrer` is less or equal than `radius`; `false` otherwise."
+  "Return `true` if `bike-point`'s coordinates are within the area defined by the `centrer`'s coordinates and a `radius`; `false` otherwise.
+  It assumes the `radius` for the latitude is two times the one for the longitude."
   [centre radius {:keys [lat lon] :as _bike-point}]
-  (let [d (math/sqrt (+ (math/expt (- lat (:lat centre)) 2)
-                        (math/expt (- lon (:lon centre)) 2)))]
-    (>= radius d)))
+  (let [centre-lat (:lat centre)
+        centre-lon (:lon centre)]
+    (and (<= (- centre-lat (* 2 radius)) lat (+ centre-lat (* 2 radius)))
+         (<= (- centre-lon radius) lon (+ centre-lon radius)))))
 
 (s/fdef within?
   :args (s/cat :centre :jpro-bikes/map-point :radius :jpro-bikes/radius :bike-point :jpro-bikes.bike/tfl-bike-point)

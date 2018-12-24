@@ -12,8 +12,9 @@
 (s/def ::commonName string?)
 (s/def ::key #{"NbBikes" "NbDocks" "NbEmptyDocks"})
 (s/def ::value string?)
-(s/def ::additionalProperties (s/keys :req-un [::key
-                                               ::value]))
+(s/def ::additionalProperty (s/keys :req-un [::key
+                                             ::value]))
+(s/def ::additionalProperties (s/coll-of ::additionalProperty))
 (s/def ::tfl-bike-point (s/keys :req-un [::lat
                                          ::lon
                                          ::id

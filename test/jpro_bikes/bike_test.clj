@@ -8,25 +8,19 @@
   (testing "coordinates?"
     (is (every? (comp nil? :failure) (stest/check `bike/coordinates?)))))
 
-(deftest get-property-spec-test
-  (testing "get-property"
-    (is (every? (comp nil? :failure) (stest/check `bike/get-property)))))
-
 (deftest distance-centre-spec-test
   (testing "distance-centre"
     (is (every? (comp nil? :failure) (stest/check `bike/distance-centre)))))
+
+(deftest get-property-spec-test
+  (testing "get-property"
+    (is (every? (comp nil? :failure) (stest/check `bike/get-property)))))
 
 (deftest distance-centre-unit-test
   (testing "distance-centre"
     (is (= 0.14142135623730953 (#'jpro-bikes.bike/distance-centre {:lat 0.0 :lon 0.0} {:lat 0.1 :lon 0.1})))
     (is (= 0.14142135623730953 (#'jpro-bikes.bike/distance-centre {:lat 0.0 :lon 0.0} {:lat -0.1 :lon -0.1})))))
 
-;; FIXME: Spec tests are failing due to nil values
-#_(deftest make-bike-point-spec-test
+(deftest make-bike-point-spec-test
   (testing "make-bike-point"
     (is (every? (comp nil? :failure) (stest/check `bike/make-bike-point)))))
-
-;; FIXME: Spec tests are failing due to nil values
-#_(deftest get-bike-points-spec-test
-  (testing "get-bike-points"
-    (is (every? (comp nil? :failure) (stest/check `bike/get-bike-points)))))

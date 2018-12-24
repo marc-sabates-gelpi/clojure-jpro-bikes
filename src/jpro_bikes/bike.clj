@@ -11,8 +11,7 @@
 (s/def ::id string?)
 (s/def ::commonName string?)
 (s/def ::key #{"NbBikes" "NbDocks" "NbEmptyDocks"})
-(s/def ::value (s/with-gen string?
-                 #(s/gen #{"58" "88" "9" "93" "83" "3" "51" "50" "34" "69" "49" "22" "87" "26" "4" "8" "28" "60" "14" "82" "59" "89" "61" "57" "68" "30" "21" "96" "80" "33" "20" "67" "81" "47" "98" "19" "17" "25" "73" "78" "15" "42" "7" "66" "44" "5" "100" "48" "53" "90" "18" "36" "12" "13" "27" "62" "75" "24" "76" "35" "6" "97" "94" "99" "38" "70" "77" "39" "1" "63" "84" "0" "43" "95" "74" "37" "46" "11" "45" "56" "32" "55" "85" "2" "72" "54" "16" "41" "91" "10" "65" "40" "31" "71" "86" "64" "92" "23" "52" "79"})))
+(s/def ::value string?)
 (s/def ::additionalProperties (s/keys :req-un [::key
                                                ::value]))
 (s/def ::tfl-bike-point (s/keys :req-un [::lat
@@ -20,6 +19,7 @@
                                          ::id
                                          ::commonName
                                          ::additionalProperties]))
+(s/def ::name string?)
 (s/def ::num-bikes nat-int?)
 (s/def ::num-empty-docks nat-int?)
 (s/def ::num-docks nat-int?)
@@ -69,9 +69,18 @@
   [{:keys [id commonName additionalProperties lat lon] :as _bike-point}]
   {:id id
    :name commonName
-   :num-bikes (edn/read-string (get-property additionalProperties "NbBikes"))
-   :num-empty-docks (edn/read-string (get-property additionalProperties "NbEmptyDocks"))
-   :num-docks (edn/read-string (get-property additionalProperties "NbDocks"))
+   :num-bikes (-> additionalProperties
+                  (get-property "NbBikes")
+                  edn/read-string
+                  (or 0))
+   :num-empty-docks (-> additionalProperties
+                        (get-property "NbEmptyDocks")
+                        edn/read-string
+                        (or 0))
+   :num-docks (-> additionalProperties
+                  (get-property "NbDocks")
+                  edn/read-string
+                  (or 0))
    :lat lat
    :lon lon})
 

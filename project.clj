@@ -7,6 +7,7 @@
                  [bidi "2.1.4"]
                  [cheshire "5.8.1"]
                  [hiccup "1.0.5"]
+                 [markdown-clj "1.0.5"]
                  [org.clojure/clojure "1.10.0"]
                  [org.clojure/math.numeric-tower "0.0.4"]
                  [yada "1.2.16"]]

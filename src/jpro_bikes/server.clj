@@ -3,6 +3,7 @@
             [cheshire.core :refer [generate-string]]
             [bidi.ring :refer [make-handler]]
             [hiccup.core :refer [html]]
+            [markdown.core :refer [md-to-html-string]]
             [jpro-bikes.bike :as bike]
             [jpro-bikes.user :as user]
             [yada.yada :as yada]))
@@ -31,11 +32,10 @@
 (defn bike-stats-html
   [_]
   (if-let [bike-points (bike/get-bike-points bike/leyton)]
-    (->> [:h2 "Bike points near Leyton"
-          (into [:table
-                 [:tr [:th "Name"] [:th "Available bikes"]]
-                 (map render-bike-point bike-points)])]
-         html)
+    (html [:h2 "Bike points near Leyton"
+           [:table
+            [:tr [:th "Name"] [:th "Available bikes"]]
+            (map render-bike-point bike-points)]])
     (html [:h2 "There are no bike points to display.."])))
 
 (defn bike-stats-json
@@ -44,7 +44,8 @@
 
 (defn make-root-handler
   []
-  (yada/handler (slurp "README.md")))
+  (yada/handler (yada/resource {:produces "text/html"
+                                :response (md-to-html-string (slurp "README.md"))})))
 
 (defn make-bikes-handler
   []

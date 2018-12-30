@@ -10,12 +10,14 @@ JPro Bikes
 
 Once the server is up & running these are the available URLs:
 
-[No auth]
-http://localhost:8080             => Generic url
+#### [No auth]
 
-[Basic Auth (user: "guest" password: "password123")]
-http://localhost:8080/bikes       => HTML version of the 5 nearest bike points to Leyton 
-http://localhost:8080/bikes/json  => JSON version of the above
+* [http://localhost:8080](/)             => Root
+
+#### [Basic Auth (user: "guest" password: "password123")]
+
+* [http://localhost:8080/bikes](/bikes)  => HTML version of the 5 nearest bike points to Leyton 
+* [http://localhost:8080/bikes/json](/bikes/json)  => JSON version of the above
 
 ## Testing
 

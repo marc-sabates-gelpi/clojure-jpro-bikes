@@ -12,7 +12,7 @@
 (s/def ::commonName string?)
 (s/def ::key #{"NbBikes" "NbDocks" "NbEmptyDocks"})
 (s/def ::value (s/with-gen string?
-                 #(s/gen #{"58" "88" "9" "93" "83" "3" "51" "50" "34" "69" "49" "22" "87" "26" "4" "8" "28" "60" "14" "82" "59" "89" "61" "57" "68" "30" "21" "96" "80" "33" "20" "67" "81" "47" "98" "19" "17" "25" "73" "78" "15" "42" "7" "66" "44" "5" "100" "48" "53" "90" "18" "36" "12" "13" "27" "62" "75" "24" "76" "35" "6" "97" "94" "99" "38" "70" "77" "39" "1" "63" "84" "0" "43" "95" "74" "37" "46" "11" "45" "56" "32" "55" "85" "2" "72" "54" "16" "41" "91" "10" "65" "40" "31" "71" "86" "64" "92" "23" "52" "79"})))
+                 #(s/gen (set (map str (range 101))))))
 (s/def ::additionalProperty (s/keys :req-un [::key
                                              ::value]))
 (s/def ::additionalProperties (s/coll-of ::additionalProperty))
@@ -46,7 +46,7 @@
   :ret boolean?)
 
 (defn distance-centre
-  "Retrun the distance to the `centre`."
+  "Return the distance to the `centre`."
   [centre {:keys [lat lon] :as _point}]
   (math/sqrt (+ (math/expt (- lat (:lat centre)) 2)
                 (math/expt (- lon (:lon centre)) 2))))
@@ -91,7 +91,7 @@
   :ret :jpro-bikes.bike/bike-point)
 
 (defn get-bike-points
-  "Get the bike points within the defined cirular area from the `center` and `radius`."
+  "Get the 5 bike points closer to the `center`."
   [centre]
   (let [all-bike-points (-> bike-points-url
                             slurp

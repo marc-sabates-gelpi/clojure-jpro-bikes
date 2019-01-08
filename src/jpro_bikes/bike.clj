@@ -91,7 +91,7 @@
   :ret :jpro-bikes.bike/bike-point)
 
 (defn get-bike-points
-  "Get the 5 bike points closer to the `center`."
+  "Get the 5 bike points closer to the `centre`."
   [centre]
   (let [all-bike-points (-> bike-points-url
                             slurp
